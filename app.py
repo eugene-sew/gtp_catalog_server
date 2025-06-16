@@ -154,6 +154,7 @@ with app.app_context():
         }
     }
 })
+
 def home():
     """Home endpoint
     This is the home endpoint of our API

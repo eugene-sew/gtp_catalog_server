@@ -2,7 +2,9 @@
 
 A full-stack web application for managing and showcasing products with a modern UI, secure authentication, and cloud storage integration. This project was developed as a solution for AmaliTech Training Academy lab assignment.
 
-![Catalog Screenshot](./screenshots/catalog.png)
+**Live Demo:** [https://54.171.195.95/](https://54.171.195.95/)
+
+![Catalog Screenshot](./screenshots/catalog_live.png)
 
 ## Features
 
@@ -21,7 +23,7 @@ A full-stack web application for managing and showcasing products with a modern 
 - Role-based access control (admin/user roles)
 - Secure password hashing with Werkzeug
 
-![Login/Register Interface](./screenshots/login_register.png)
+![Login Interface](./screenshots/login.png) ![Create Account](./screenshots/create_account.png)
 
 ### Product Management
 
@@ -30,14 +32,14 @@ A full-stack web application for managing and showcasing products with a modern 
 - AWS S3 integration for image storage using pre-signed URLs
 - Form validation and error handling
 
-![Product Add Interface](./screenshots/product_add.png)
+![Product Add Interface](./screenshots/product_add_live.png)
 
 ### API Documentation
 
 - Swagger UI for API documentation
 - Well-documented endpoints for all operations
 
-![API Documentation](./screenshots/api-docs.png)
+![API Documentation](./screenshots/api-docs.png) ![API Calls](./screenshots/api_calls.png)
 
 ### Deployment Architecture
 
@@ -189,19 +191,14 @@ This application is deployed on AWS EC2 using a secure architecture with NGINX a
 
 ### NGINX Configuration
 
-The NGINX reverse proxy serves as the front-facing component, handling all incoming requests before they reach the Flask application. This provides several security benefits:
+The NGINX reverse proxy serves as the front-facing component, handling all incoming requests with a focus on security. The actual configuration deployed on EC2 is as follows:
 
-1. **IP-based Access Control**: Only specified IP ranges can access the application
-2. **Request Filtering**: Blocks potentially malicious requests
-3. **Rate Limiting**: Prevents DDoS attacks
-4. **SSL Termination**: Handles HTTPS encryption/decryption
+![NGINX Configuration](./screenshots/nginx_config.png)
 
 ```nginx
 server {
     listen 80;
     server_name _;
-
-    # Redirect HTTP to HTTPS
     return 301 https://$host$request_uri;
 }
 
@@ -209,61 +206,56 @@ server {
     listen 443 ssl;
     server_name _;
 
-    # SSL configuration
-    ssl_certificate /etc/nginx/ssl/cert.pem;
-    ssl_certificate_key /etc/nginx/ssl/key.pem;
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_prefer_server_ciphers on;
+    ssl_certificate      /etc/ssl/certificate.crt;
+    ssl_certificate_key  /etc/ssl/private.key;
 
-    # Security headers
-    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header X-Frame-Options "SAMEORIGIN" always;
-    add_header X-XSS-Protection "1; mode=block" always;
+    access_log   /var/log/nginx/nginx.vhost.access.log;
+    error_log    /var/log/nginx/nginx.vhost.error.log;
 
-    # Rate limiting zone
-    limit_req_zone $binary_remote_addr zone=api_limit:10m rate=5r/s;
-
-    # Static files
-    location /static/ {
-        alias /var/www/catalog-server/static/;
-        expires 30d;
-    }
-
-    # API endpoints with rate limiting
-    location /api/ {
-        limit_req zone=api_limit burst=10 nodelay;
-        proxy_pass http://localhost:5002;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-
-        # IP restriction rules
-        allow 192.168.1.0/24;  # Allow internal network
-        allow 203.0.113.0/24;  # Allow specific external network
-        deny all;              # Deny all other IPs
-    }
-
-    # Main application
     location / {
-        proxy_pass http://localhost:5002;
+        root /home/ubuntu/catalog_server/static;
+        index index.html;
+        try_files $uri $uri/ /index.html;
+    }
+
+    location /api/ {
+        allow 154.161.170.182;
+        deny all;
+        proxy_pass http://127.0.0.1:5001;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-
-        # IP restriction rules - more permissive for frontend
-        allow 192.168.0.0/16;  # Allow broader internal network
-        allow 203.0.113.0/24;  # Allow specific external network
-        allow 198.51.100.0/24; # Allow additional network
-        deny all;              # Deny all other IPs
     }
-
-    # Error pages
-    error_page 403 /403.html;
-    error_page 404 /404.html;
-    error_page 500 502 503 504 /50x.html;
 }
 ```
+
+### Security Implications
+
+This NGINX configuration implements several important security measures:
+
+1. **HTTPS Enforcement**: All HTTP traffic (port 80) is automatically redirected to HTTPS (port 443), ensuring encrypted communication.
+
+2. **SSL/TLS Implementation**: Uses custom SSL certificates for secure HTTPS connections.
+
+3. **Static/API Separation**:
+
+   - Static frontend files are served directly by NGINX from `/home/ubuntu/catalog_server/static`
+   - API requests are proxied to the Flask backend running on port 5001
+
+4. **Strict API Access Control**:
+
+   - Only a single specific IP address (`154.161.170.182`) is allowed to access the API endpoints
+   - All other IP addresses are denied access to the API
+   - This creates a highly secure setup where the API can only be accessed from an authorized location
+
+5. **Comprehensive Logging**:
+
+   - Access and error logs are configured for monitoring and troubleshooting
+   - This enables security auditing and helps identify potential attacks
+
+6. **Single Page Application Support**:
+   - The `try_files` directive supports client-side routing for the SPA frontend
+   - This ensures proper functioning of the modern UI with client-side navigation
 
 ### Security Layers
 
