@@ -279,12 +279,6 @@ This NGINX configuration implements several important security measures:
 Username: admin  
 Password: admin123
 
-```
-aws s3 sync static/ s3://your-bucket-name/ --acl public-read
-```
-
-5. Access your UI via the S3 website endpoint or CloudFront distribution
-
 ## Default Admin User
 
 A default admin user is created on app startup:
@@ -304,13 +298,3 @@ A default admin user is created on app startup:
 | `/api/products/<id>` | PUT    | Update product       | Yes           |
 | `/api/products/<id>` | DELETE | Delete product       | Yes           |
 
-## Security Considerations
-
-For production use:
-
-1. Store AWS credentials securely (not in frontend code)
-2. Use AWS Cognito or similar for temporary credentials
-3. Enable HTTPS on your API
-4. Set specific CORS origins instead of wildcard "\*"
-5. Implement token refresh
-6. Change default admin credentials
