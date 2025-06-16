@@ -10,12 +10,6 @@ A full-stack web application for managing and showcasing products with a modern 
 
 ### Modern UI with Bento Grid Layout
 
-- Responsive design with modern minimalist aesthetics
-- Bento grid layout for featured products
-- Glassmorphism effects with blurred backgrounds
-- Colorful blob shapes for visual interest
-- Pagination for efficient product browsing
-
 ### Secure Authentication
 
 - JWT-based authentication with access and refresh tokens
