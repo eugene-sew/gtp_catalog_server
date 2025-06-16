@@ -1,6 +1,6 @@
 # Modern Product Catalog Application
 
-A full-stack web application for managing and showcasing products with a modern UI, secure authentication, and cloud storage integration. This project was developed as a solution for AmaliTech Training Academy lab assignment.
+A full-stack web application for managing and showcasing products with a modern UI, secure authentication, and cloud storage integration. This project was developed as a solution for a lab assignment.
 
 **Live Demo:** [https://54.171.195.95/](https://54.171.195.95/)
 
